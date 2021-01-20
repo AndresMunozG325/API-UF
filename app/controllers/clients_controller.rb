@@ -57,15 +57,13 @@ class ClientsController < ApplicationController
     end
   end
 
-
   def my_queries
     name = params[:name]
     detalle = []
     (Client.where(name: name)).each do |c|
       datos = {}
-      datos[:r_date] = c.request_date
-      datos[:v_uf] = c.ufvalue
-      datos[:created_at] = c.created_at
+      datos[:r_date] = c.r_date
+      datos[:v_uf] = c.v_uf
       detalle.push(datos)
     end
     muestra_datos = {"Cantidad de consultas": "#{Client.where(name: name).count}", "Detalle de consultas": "#{detalle}"}
