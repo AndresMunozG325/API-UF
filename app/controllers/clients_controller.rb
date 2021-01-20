@@ -38,6 +38,41 @@ class ClientsController < ApplicationController
     @client.destroy
   end
 
+  def consult_uf
+    api_address = "https://mindicador.cl/api/uf/#{(params[:date])}"
+    response = HTTParty.get(api_address)
+    
+    converthash = JSON.parse(response.read_body)
+    
+    if converthash['serie'][0].nil?
+      return render json: {mensaje:"No existen datos para la fecha indicada"}
+    else 
+      
+      if request.headers['x-CLIENTE'].present?
+        Client.create(name: request.headers['X-CLIENTE'], r_date: "#{params[:date]}", v_uf: converthash['serie'][0]['valor'] )
+        render json: converthash['serie'][0]['valor']
+      else
+        return render json: {mensaje:"Indicar KEY = X-CLIENTE  en HEADER nombre de cliente"}
+      end
+    end
+  end
+
+
+  def my_queries
+    name = params[:name]
+    detalle = []
+    (Client.where(name: name)).each do |c|
+      datos = {}
+      datos[:r_date] = c.request_date
+      datos[:v_uf] = c.ufvalue
+      datos[:created_at] = c.created_at
+      detalle.push(datos)
+    end
+    muestra_datos = {"Cantidad de consultas": "#{Client.where(name: name).count}", "Detalle de consultas": "#{detalle}"}
+    render json: muestra_datos
+  end
+
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_client
